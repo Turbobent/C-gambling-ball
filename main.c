@@ -3,20 +3,26 @@
 #include <time.h>
 #include <string.h> 
 #include <stdbool.h>
+
 int generatematches() {
     return rand() % 4; 
 }
 
+
+int withdraw(){}
+
 int main() { 
     char gameChoice[2];
     int balance = 100;
-    do{
+
+    srand(time(0)); 
+    
+ do{
     int betChoice; 
     int betamount;
     
     char* teams[] = {"randers fc", "agf", "bronby", "aalborg"};
     
-    srand(time(0)); 
     int team1Index = generatematches();
     int team2Index = generatematches();
 
@@ -72,9 +78,19 @@ int main() {
         balance += betamount; 
     }
 
+    if(balance == 0){
+        do{
+            printf("balance is 0\n");
+            printf("add more money to make us rich min 5000$ ");
+            scanf("%d", &balance);
+        }while (balance < 5000); 
+    }
+
     printf("Your new balance is: %d\n", balance);
+
     printf("play again Y/N ");
     scanf("%s", gameChoice);
+    
     } while (strcmp(gameChoice, "Y") == 0 || strcmp(gameChoice, "y") == 0);
 
     return 0;
