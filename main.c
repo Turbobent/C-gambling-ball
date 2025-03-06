@@ -2,14 +2,16 @@
 #include <stdlib.h>
 #include <time.h>
 #include <string.h> 
-
+#include <stdbool.h>
 int generatematches() {
     return rand() % 4; 
 }
 
-int main() {
+int main() { 
+    char gameChoice[2];
     int balance = 100;
-    char usersTeamBet[20]; 
+    do{
+    int betChoice; 
     int betamount;
     
     char* teams[] = {"randers fc", "agf", "bronby", "aalborg"};
@@ -26,8 +28,10 @@ int main() {
 
     printf("Match: %s vs %s\n", playing[0], playing[1]);
 
-    printf("What team do you bet on? ");
-    scanf("%s", usersTeamBet);
+    do {
+        printf("Enter 1 to bet on %s or 2 to bet on %s: ", playing[0], playing[1]);
+        scanf("%d", &betChoice);
+    } while (betChoice != 1 && betChoice != 2);
 
     do {
         printf("How much do you bet? ");
@@ -48,7 +52,7 @@ int main() {
     if (team1Score > team2Score) {
         printf("%s wins!\n", playing[0]);
 
-        if (strcmp(usersTeamBet, playing[0]) == 0) {
+        if (betChoice == 1) {
             balance += betamount * 2; 
             printf("You won the bet!\n");
         } else {
@@ -57,7 +61,7 @@ int main() {
     } else if (team1Score < team2Score) {
         printf("%s wins!\n", playing[1]);
 
-        if (strcmp(usersTeamBet, playing[1]) == 0) {
+        if (betChoice == 2) {
             balance += betamount * 2;
             printf("You won the bet!\n");
         } else {
@@ -69,5 +73,9 @@ int main() {
     }
 
     printf("Your new balance is: %d\n", balance);
+    printf("play again Y/N ");
+    scanf("%s", gameChoice);
+    } while (strcmp(gameChoice, "Y") == 0 || strcmp(gameChoice, "y") == 0);
+
     return 0;
 }
