@@ -9,8 +9,10 @@ void addBalance(int *balance);
 void showLeaderboard();
 void playFootballGame(int *balance);
 void playSlotMachine(int *balance);
-int checkWin(int a, int b, int c);
+void playBaccarat(int *balance);
+int checkSlotWin(int a, int b, int c);
 void spinWheel(int min, int max, int results[3]);
+
 
 int main() {
     char gameChoice[2];
@@ -23,32 +25,38 @@ int main() {
         printf("\n===== Main Menu =====\n");
         printf("1. Play Football Betting Game\n");
         printf("2. Play Slot Machine\n");
-        printf("3. Add Money\n");
-        printf("4. View Leaderboard\n");
-        printf("5. Quit\n");
+        printf("3. Play Baccarat\n");  // Changed from "play Baccarat" to "Play Baccarat"
+        printf("4. Add Money\n");      // Changed from 3 to 4
+        printf("5. View Leaderboard\n"); // Changed from 4 to 5
+        printf("6. Quit\n");           // Changed from 5 to 6
         printf("Current Balance: %d\n", balance);
         printf("Enter your choice: ");
         scanf("%d", &menuChoice);
+        printf("\n===== Main Menu =====\n");
 
-        switch (menuChoice) {
-            case 1:
-                playFootballGame(&balance);
-                break;
-            case 2:
-                playSlotMachine(&balance);
-                break;
-            case 3:
-                addBalance(&balance);
-                break;
-            case 4:
-                showLeaderboard();
-                break;
-            case 5:
-                printf("Goodbye!\n");
-                return 0;
-            default:
-                printf("Invalid choice! Try again.\n");
-        }
+
+      switch (menuChoice) {
+        case 1:
+            playFootballGame(&balance);
+            break;
+        case 2:
+            playSlotMachine(&balance);
+            break;
+        case 3:
+            playBaccarat(&balance);  // New Baccarat game
+            break;
+        case 4:
+            addBalance(&balance);
+            break;
+        case 5:
+            showLeaderboard();
+            break;
+        case 6:
+            printf("Goodbye!\n");
+            return 0;
+        default:
+            printf("Invalid choice! Try again.\n");
+}
 
         if (balance <= 0) {
             printf("\nYou're out of money! Adding 100 to your balance.\n");
@@ -159,7 +167,7 @@ void playSlotMachine(int *balance) {
         int reelResults[3];
         spinWheel(0, 9, reelResults);
         
-        int winMultiplier = checkWin(reelResults[0], reelResults[1], reelResults[2]);
+        int winMultiplier = checkSlotWin(reelResults[0], reelResults[1], reelResults[2]);
         int winnings = betAmount * winMultiplier;
         *balance += winnings;
         
@@ -190,7 +198,7 @@ void playSlotMachine(int *balance) {
     } while (strcmp(gameChoice, "Y") == 0 || strcmp(gameChoice, "y") == 0);
 }
 
-int checkWin(int a, int b, int c) {
+int checkSlotWin(int a, int b, int c) {
     if (a == b && b == c) return 10;
     if (a == b || b == c || a == c) return 2;
     return 0;
@@ -236,4 +244,120 @@ void addBalance(int *balance) {
 void showLeaderboard() {
     printf("\n===== Leaderboard =====\n");
     printf("Feature coming soon!\n");
+}
+
+void playBaccarat(int *balance) {
+    char gameChoice[2];
+    
+    do {
+        // Card utilities
+        typedef struct {
+            int value;  // 1-13
+            char suit;  // 'H','D','C','S'
+        } Card;
+
+        Card drawCard() {
+            Card newCard;
+            newCard.value = rand() % 13 + 1;
+            char suits[] = {'H', 'D', 'C', 'S'};
+            newCard.suit = suits[rand() % 4];
+            return newCard;
+        }
+
+        void printCard(Card c) {
+            char *faceValues = "A23456789TJQK";
+            printf("[%c%c]", faceValues[c.value-1], c.suit);
+        }
+
+        int calculateHandValue(Card hand[], int count) {
+            int total = 0;
+            for(int i = 0; i < count; i++) {
+                total += (hand[i].value > 9) ? 0 : hand[i].value;
+            }
+            return total % 10;
+        }
+
+        printf("\n===== Baccarat =====\n");
+        printf("Current Balance: $%d\n", *balance);
+        
+        int betAmount, betChoice;
+        Card playerHand[3], bankerHand[3];
+        int playerCardCount = 2, bankerCardCount = 2;
+        
+        // Get bet
+        do {
+            printf("Bet on:\n1. Player (1:1)\n2. Banker (0.95:1)\n3. Tie (8:1)\nChoice: ");
+            scanf("%d", &betChoice);
+        } while(betChoice < 1 || betChoice > 3);
+
+        do {
+            printf("Bet amount (0 to quit): ");
+            scanf("%d", &betAmount);
+            if(betAmount == 0) return;
+        } while(betAmount > *balance);
+
+        *balance -= betAmount;
+
+        // Deal cards
+        playerHand[0] = drawCard();
+        playerHand[1] = drawCard();
+        bankerHand[0] = drawCard();
+        bankerHand[1] = drawCard();
+
+        // Third card rules
+        int playerTotal = calculateHandValue(playerHand, playerCardCount);
+        if(playerTotal <= 5) {
+            playerHand[playerCardCount++] = drawCard();
+            playerTotal = calculateHandValue(playerHand, playerCardCount);
+        }
+
+        int bankerTotal = calculateHandValue(bankerHand, bankerCardCount);
+        if((bankerTotal <= 2) ||
+           (bankerTotal == 3 && playerCardCount == 3 && playerHand[2].value != 8) ||
+           (bankerTotal == 4 && playerCardCount == 3 && playerHand[2].value >= 2 && playerHand[2].value <= 7) ||
+           (bankerTotal == 5 && playerCardCount == 3 && playerHand[2].value >= 4 && playerHand[2].value <= 7) ||
+           (bankerTotal == 6 && playerCardCount == 3 && (playerHand[2].value == 6 || playerHand[2].value == 7))) {
+            bankerHand[bankerCardCount++] = drawCard();
+            bankerTotal = calculateHandValue(bankerHand, bankerCardCount);
+        }
+
+        // Display results
+        printf("\nPlayer: ");
+        for(int i = 0; i < playerCardCount; i++) printCard(playerHand[i]);
+        printf(" = %d\n", playerTotal);
+
+        printf("Banker: ");
+        for(int i = 0; i < bankerCardCount; i++) printCard(bankerHand[i]);
+        printf(" = %d\n", bankerTotal);
+
+        // Determine payout
+        int payout = 0;
+        if(playerTotal > bankerTotal && betChoice == 1) {
+            payout = betAmount * 2;
+            printf("\033[1;32mPlayer wins! You win $%d\033[0m\n", betAmount);
+        } 
+        else if(bankerTotal > playerTotal && betChoice == 2) {
+            payout = betAmount + (int)(betAmount * 0.95);
+            printf("\033[1;32mBanker wins! You win $%d\033[0m\n", (int)(betAmount * 0.95));
+        } 
+        else if(playerTotal == bankerTotal && betChoice == 3) {
+            payout = betAmount * 9;
+            printf("\033[1;33mTie! You win $%d\033[0m\n", betAmount * 8);
+        }
+        else {
+            printf("\033[1;31mYou lost.\033[0m\n");
+        }
+
+        *balance += payout;
+        printf("New balance: $%d\n", *balance);
+        
+        if (*balance <= 0) {
+            printf("You're out of money!\n");
+            return;
+        }
+
+        printf("Play again? (Y/N): ");
+        scanf("%s", gameChoice);
+
+    } while (strcmp(gameChoice, "Y") == 0 || strcmp(gameChoice, "y") == 0);
 }
