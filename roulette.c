@@ -57,7 +57,7 @@ void printResult(RouletteNumber rn) {
         printf("%c %2d", rn.color, rn.value);
     }
 }
-
+    
 int main(){
     srand(time(NULL));
     char betChoice[10];

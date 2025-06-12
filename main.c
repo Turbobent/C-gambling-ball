@@ -12,6 +12,7 @@ void playSlotMachine(int *balance);
 void playBaccarat(int *balance);
 int checkSlotWin(int a, int b, int c);
 void spinWheel(int min, int max, int results[3]);
+void playRoulette(int *balance);
 
 
 int main() {
@@ -25,10 +26,11 @@ int main() {
         printf("\n===== Main Menu =====\n");
         printf("1. Play Football Betting Game\n");
         printf("2. Play Slot Machine\n");
-        printf("3. Play Baccarat\n");  // Changed from "play Baccarat" to "Play Baccarat"
-        printf("4. Add Money\n");      // Changed from 3 to 4
-        printf("5. View Leaderboard\n"); // Changed from 4 to 5
-        printf("6. Quit\n");           // Changed from 5 to 6
+        printf("3. Play Baccarat\n"); 
+        printf("4. play roulette\n");
+        printf("5. Add Money\n");
+        printf("6. View Leaderboard\n");
+        printf("7. Quit\n");           
         printf("Current Balance: %d\n", balance);
         printf("Enter your choice: ");
         scanf("%d", &menuChoice);
@@ -43,15 +45,18 @@ int main() {
             playSlotMachine(&balance);
             break;
         case 3:
-            playBaccarat(&balance);  // New Baccarat game
+            playBaccarat(&balance);  
             break;
         case 4:
-            addBalance(&balance);
+            playRoulette(&balance);
             break;
         case 5:
-            showLeaderboard();
+            addBalance(&balance);
             break;
         case 6:
+            showLeaderboard();
+            break;
+        case 7:
             printf("Goodbye!\n");
             return 0;
         default:
@@ -252,8 +257,10 @@ void playBaccarat(int *balance) {
     do {
         // Card utilities
         typedef struct {
-            int value;  // 1-13
-            char suit;  // 'H','D','C','S'
+            // 1-13
+            int value;  
+            // 'H','D','C','S'
+            char suit;  
         } Card;
 
         Card drawCard() {
@@ -360,4 +367,106 @@ void playBaccarat(int *balance) {
         scanf("%s", gameChoice);
 
     } while (strcmp(gameChoice, "Y") == 0 || strcmp(gameChoice, "y") == 0);
+}
+
+void playRoulette(int *balance) {
+    int bet, numberBet, winningNumber, betChoice;
+    char playAgain[3];
+    // Seed random generator
+    srand(time(NULL)); 
+
+    do {
+        printf("\n===== Roulette =====\n");
+        printf("Current Balance: %d\n", *balance);
+
+        // Bet amount input
+        do {
+            printf("Enter your bet amount (0 to quit): ");
+            scanf("%d", &bet);
+            if (bet == 0) return;
+            if (bet > *balance)
+                printf("You can't bet more than you have!\n");
+        } while (bet > *balance || bet < 0);
+
+        // Bet type choice
+        do {
+            printf("Choose bet type:\n");
+            printf("1. Specific number (pays 35:1)\n");
+            printf("2. Red (pays 1:1)\n");
+            printf("3. Black (pays 1:1)\n");
+            printf("4. Green (0 or 00, pays 17:1)\n");
+            printf("Enter choice: ");
+            scanf("%d", &betChoice);
+        } while (betChoice < 1 || betChoice > 4);
+
+        *balance -= bet;
+        // 0–36 are regular numbers, 37 represents "00"
+        winningNumber = rand() % 38; 
+
+        // Determine color for red/black logic (simplified assumption)
+        int isRed = (winningNumber % 2 == 1 && winningNumber <= 36);
+        int isBlack = (winningNumber % 2 == 0 && winningNumber <= 36 && winningNumber != 0);
+        int isGreen = (winningNumber == 0 || winningNumber == 37);
+
+        // Print winning number
+        if (winningNumber == 37)
+            printf("Roulette spins... and lands on 00!\n");
+        else
+            printf("Roulette spins... and lands on %d!\n", winningNumber);
+
+        // Win logic
+        int winnings = 0;
+
+        switch (betChoice) {
+            // Specific number
+            case 1: 
+                printf("Choose a number between 0 and 36: ");
+                scanf("%d", &numberBet);
+                if (numberBet == winningNumber) {
+                    winnings = bet * 35;
+                    printf("\033[1;32mJackpot! You win %d!\033[0m\n", winnings);
+                } else {
+                    printf("\033[1;31mYou lost your bet.\033[0m\n");
+                }
+                break;
+                // Red
+            case 2: 
+                if (isRed) {
+                    winnings = bet;
+                    printf("\033[1;32mYou won on Red! You win %d!\033[0m\n", winnings);
+                } else {
+                    printf("\033[1;31mBlack or Green - you lose.\033[0m\n");
+                }
+                break;
+                // Black
+            case 3: 
+                if (isBlack) {
+                    winnings = bet;
+                    printf("\033[1;32mYou won on Black! You win %d!\033[0m\n", winnings);
+                } else {
+                    printf("\033[1;31mRed or Green - you lose.\033[0m\n");
+                }
+                break;
+                // Green (0 or 00)
+            case 4: 
+                if (isGreen) {
+                    winnings = bet * 17;
+                    printf("\033[1;32mGreen hit! You win %d!\033[0m\n", winnings);
+                } else {
+                    printf("\033[1;31mNo green - you lose.\033[0m\n");
+                }
+                break;
+        }
+        // add winnings and original bet if won
+        *balance += winnings + (winnings > 0 ? bet : 0); 
+        printf("New Balance: %d\n", *balance);
+
+        if (*balance <= 0) {
+            printf("You're out of money!\n");
+            return;
+        }
+
+        printf("Play again? (Y/N): ");
+        scanf("%s", playAgain);
+    } while (strcmp(playAgain, "Y") == 0 || strcmp(playAgain, "y") == 0);
 }
