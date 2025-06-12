@@ -4,4 +4,3 @@ run: ./filename
 compile server: gcc server.c -o server.exe -lws2_32
 
 -next so so i can type quit and the other stuff
-- get baccarat in to the main.c
